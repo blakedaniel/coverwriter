@@ -17,7 +17,7 @@ def generate_output(company, title, job_description, resume):
     # Combine user input and PDF text into a single prompt
     prompt = f"<s>### PROMPT: ~~COMPANY~~: {company} ~~TITLE~~: {title} ~~JOB DESCIPRTION~~: {job_description} ~~RESUME~~: {resume}  ### RESPONSE: COVER LETTER: "
     input_ids = tokenizer(prompt, return_tensors='pt')
-    answer = model.generate(input_ids, max_length=600)
+    answer = model.generate(**input_ids, max_new_tokens=600)
     generated_text = tokenizer.decode(answer[:, input_ids.shape[-1]:][0], clean_up_tokenization_spaces=True)
     
     # Check if '###' is in the generated text
