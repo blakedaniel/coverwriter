@@ -1,10 +1,9 @@
 import streamlit as st
 import pdfplumber
-from transformers import AutoModelForCausalLM, LlamaTokenizer
+from transformers import pipeline
 
 # Load the LLM model
-model = AutoModelForCausalLM.from_pretrained('bvanflet/coverletter')
-tokenizer = LlamaTokenizer.from_pretrained('bvanflet/coverletter')
+pipe = pipeline('text-generation', model='bvanflet/coverletter')
 
 def process_pdf(uploaded_file):
     pdf = pdfplumber.open(uploaded_file)
@@ -16,10 +15,8 @@ def process_pdf(uploaded_file):
 def generate_output(company, title, job_description, resume):
     # Combine user input and PDF text into a single prompt
     prompt = f"<s>### PROMPT: ~~COMPANY~~: {company} ~~TITLE~~: {title} ~~JOB DESCIPRTION~~: {job_description} ~~RESUME~~: {resume}  ### RESPONSE: COVER LETTER: "
-    input_ids = tokenizer(prompt, return_tensors='pt')
-    answer = model.generate(**input_ids, max_new_tokens=600)
-    generated_text = tokenizer.decode(answer[:, input_ids.shape[-1]:][0], clean_up_tokenization_spaces=True)
-    
+    generated_text = pipe(prompt, max_new_tokens=600, do_sample=True, temperature=0.9, top_k=50)[0]['generated_text']
+        
     # Check if '###' is in the generated text
     if '###' in generated_text:
         # If '###' is found, truncate the text at that point
